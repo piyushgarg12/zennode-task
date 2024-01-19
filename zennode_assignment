@@ -1,0 +1,85 @@
+function calculateDiscount(cart, rules) {
+    let discounts = {};
+  
+    // Check "flat_10_discount"
+    let cartTotal = Object.values(cart).reduce((acc, quantity) => acc + quantity, 0);
+    if (cartTotal > 200) {
+      discounts["flat_10_discount"] = 10;
+    }
+  
+    // Check "bulk_5_discount"
+    for (let product in cart) {
+      if (cart[product] > 10) {
+        discounts["bulk_5_discount"] = Math.min(5, discounts["bulk_5_discount"] || 5);
+      }
+    }
+  
+    // Check "bulk_10_discount"
+    if (cartTotal > 20) {
+      discounts["bulk_10_discount"] = 10;
+    }
+  
+    // Check "tiered_50_discount"
+    if (cartTotal > 30) {
+      let maxQuantity = Math.max(...Object.values(cart));
+      if (maxQuantity > 15) {
+        discounts["tiered_50_discount"] = 50;
+      }
+    }
+  
+    return discounts;
+  }
+  
+  function main() {
+    const products = { "Product A": 20, "Product B": 40, "Product C": 50 };
+    const cart = {};
+    const giftWrapFee = 1;
+    const shippingFee = 5;
+    const unitsPerPackage = 10;
+  
+    // Input quantity and gift wrap information for each product
+    for (let product in products) {
+      const quantity = parseInt(prompt(`Enter the quantity of ${product}:`), 10);
+      const isGiftWrapped = prompt(`Is ${product} wrapped as a gift? (yes/no):`).toLowerCase() === "yes";
+      cart[product] = { quantity, isGiftWrapped };
+    }
+  
+    // Calculate product-wise total and subtotal
+    let subtotal = 0;
+    for (let product in cart) {
+      const price = products[product];
+      const quantity = cart[product].quantity;
+      const totalAmount = quantity * price;
+      subtotal += totalAmount;
+      console.log(`${product}: Quantity - ${quantity}, Total - $${totalAmount}`);
+    }
+  
+    // Calculate discounts
+    const discountRules = calculateDiscount(cart, products);
+    const discountName = Object.keys(discountRules).reduce((a, b) => discountRules[a] > discountRules[b] ? a : b, null);
+    const discountAmount = discountRules[discountName] || 0;
+  
+    // Apply the most beneficial discount
+    subtotal -= discountAmount;
+  
+    // Calculate shipping fee
+    const numPackages = Math.floor(Object.values(cart).reduce((acc, details) => acc + details.quantity, 0) / unitsPerPackage);
+    const shippingFeeTotal = shippingFee * numPackages;
+  
+    // Calculate gift wrap fee
+    const giftWrapFeeTotal = giftWrapFee * Object.values(cart).reduce((acc, details) => acc + (details.isGiftWrapped ? 1 : 0), 0);
+  
+    // Calculate total
+    const total = subtotal + shippingFeeTotal + giftWrapFeeTotal;
+  
+    // Display the details
+    console.log(`\nSubtotal: $${subtotal}`);
+    console.log(`Discount Applied: ${discountName} - $${discountAmount}`);
+    console.log(`Shipping Fee: $${shippingFeeTotal}`);
+    console.log(`Gift Wrap Fee: $${giftWrapFeeTotal}\n`);
+    console.log(`Total: $${total}`);
+  }
+  
+  // Run the main function
+  main();
+  
